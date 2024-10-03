@@ -1,64 +1,55 @@
-import React, { useState } from "react";
-import {
-  Button,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-  Modal,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import ViewTaskScreen from "@/components/Details/Detail";
+import HeaderGoBack from "@/components/Header/HeaderGoBack";
+import LoadingIndicator from "@/components/Loading/Loading";
+import { Task } from "@/lib/interface";
+import { API, endPoints } from "@/Service/Api";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-import HeaderGoBack from "@/components/Header/HeaderGoBack";
+import React, { useEffect, useState } from "react";
+import {
+  BackHandler,
+  Button,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import RadioForm from "react-native-simple-radio-button";
-import { KeyboardAvoidingView } from "react-native";
-
-interface Task {
-  title: string;
-  startDate: Date;
-  endDate: Date;
-  priority: string;
-  content: string;
-  contactPerson: string;
-  transportation: string;
-  followUpDate: Date;
-  referenceSource: string;
-  cost: string;
-  notes: string;
-  attachment: string | null;
-  approved: boolean;
-}
 
 const Collab: React.FC = () => {
   const [taskDetails, setTaskDetails] = useState<Task>({
-    title: "",
-    startDate: new Date(),
-    endDate: new Date(),
-    priority: "medium",
-    content: "",
-    contactPerson: "",
-    transportation: "tự túc",
-    followUpDate: new Date(),
-    referenceSource: "",
-    cost: "",
-    notes: "",
-    attachment: null,
-    approved: false,
+    JobTitle: "",
+    StartTime: new Date(),
+    EndTime: new Date(),
+    Priority: 2,
+    Content: "",
+    WithPerson: "",
+    TransportationMode: "1",
+    NextAppointment: new Date(),
+    Referral: "",
+    Cost: "",
+    Notes: "",
+    AttachmentURL: null,
+    Status: 1,
   });
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [showDetailsIndex, setShowDetailsIndex] = useState<number | null>(null);
-  const [showMoreIndex, setShowMoreIndex] = useState<number | null>(null);
+  const [isModalVisibleViewTask, setModalVisibleViewTask] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const radio_props = [
-    { label: "Thấp", value: "low" },
-    { label: "Trung bình", value: "medium" },
-    { label: "Cao", value: "high" },
+    { label: "Thấp", value: "1" },
+    { label: "Trung bình", value: "2" },
+    { label: "Cao", value: "3" },
   ];
 
   const radio_translate = [
@@ -67,248 +58,420 @@ const Collab: React.FC = () => {
     { label: "Khác", value: "3" },
   ];
 
-  const handleSubmit = () => {
-    if (!taskDetails.title || !taskDetails.content) {
+  function formatDateToCustomString(dateString: any) {
+    const date = new Date(dateString);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  const openTaskModal = (task: Task) => {
+    setSelectedTask(task);
+    setModalVisibleViewTask(true);
+  };
+
+  const closeTaskModal = () => {
+    setModalVisibleViewTask(false);
+    setSelectedTask(null);
+  };
+
+  useEffect(() => {
+    const getAllCollobarte = async () => {
+      try {
+        const response = await API().get(endPoints["get-collaborate"]);
+        setTasks(response.data);
+      } catch (error) {
+        console.log("Error while fetching tasks:", error);
+      }
+    };
+    getAllCollobarte();
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!taskDetails.JobTitle || !taskDetails.Content) {
       alert("Tiêu đề và nội dung không được để trống.");
       return;
     }
 
-    if (taskDetails.startDate >= taskDetails.endDate) {
+    if (taskDetails.StartTime >= taskDetails.EndTime) {
       alert("Ngày kết thúc phải sau ngày bắt đầu.");
       return;
     }
 
-    setTasks((prevTasks) => [...prevTasks, taskDetails]);
-    resetForm();
-    setModalVisible(false);
+    try {
+      setIsLoading(true);
+      let attachmentBase64 = "";
+
+      if (taskDetails.AttachmentURL) {
+        const response = await fetch(taskDetails.AttachmentURL);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch file");
+        }
+
+        const blob = await response.blob();
+        const fileReader = new FileReader();
+
+        attachmentBase64 = await new Promise((resolve, reject) => {
+          fileReader.onloadend = () => {
+            if (typeof fileReader.result === "string") {
+              resolve(fileReader.result.split(",")[1]);
+            } else {
+              reject(new Error("File reading failed"));
+            }
+          };
+
+          fileReader.onerror = () => reject(new Error("Error reading file"));
+
+          fileReader.readAsDataURL(blob);
+        });
+      }
+
+      const payload = {
+        job_title: taskDetails.JobTitle,
+        start_time: formatDateToCustomString(
+          taskDetails.StartTime.toDateString()
+        ),
+        end_time: formatDateToCustomString(taskDetails.EndTime.toISOString()),
+        priority: taskDetails.Priority,
+        content: taskDetails.Content,
+        with_person: taskDetails.WithPerson,
+        transportation_mode: taskDetails.TransportationMode,
+        next_appointment: formatDateToCustomString(
+          taskDetails.NextAppointment.toDateString()
+        ),
+        referral: taskDetails.Referral,
+        cost: taskDetails.Cost,
+        notes: taskDetails.Notes,
+        attachment: attachmentBase64,
+      };
+
+      await API().post(endPoints["create-collaborate"], payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      setTasks((prevTasks) => [...prevTasks, taskDetails]);
+      resetForm();
+      setModalVisible(false);
+    } catch (error) {
+      console.log("Error while submitting:", error);
+      alert("Có lỗi xảy ra trong quá trình gửi dữ liệu.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetForm = () => {
     setTaskDetails({
-      title: "",
-      startDate: new Date(),
-      endDate: new Date(),
-      priority: "medium",
-      content: "",
-      contactPerson: "",
-      transportation: "tự túc",
-      followUpDate: new Date(),
-      referenceSource: "",
-      cost: "",
-      notes: "",
-      attachment: null,
-      approved: false,
+      JobTitle: "",
+      StartTime: new Date(),
+      EndTime: new Date(),
+      Priority: 2,
+      Content: "",
+      WithPerson: "",
+      TransportationMode: "1",
+      NextAppointment: new Date(),
+      Referral: "",
+      Cost: "",
+      Notes: "",
+      AttachmentURL: null,
+      Status: 1,
     });
   };
 
- 
   const handleImageUpload = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsMultipleSelection: true,
       quality: 1,
     });
 
     if (!result.canceled) {
-      setTaskDetails((prev) => ({ ...prev, attachment: result.assets[0].uri }));
+      setTaskDetails((prev) => ({
+        ...prev,
+        AttachmentURL: result.assets[0].uri,
+      }));
     }
   };
 
-  const toggleDetails = (index: number) => {
-    setShowDetailsIndex(showDetailsIndex === index ? null : index);
-  };
+  const fetchTasks = async () => {
+    setIsLoading(true);
 
-  const toggleMore = (index: number) => {
-    setShowMoreIndex(showMoreIndex === index ? null : index);
+    setIsLoading(false);
   };
 
   const renderTaskCard = (task: Task, index: number) => (
-    <View key={index} style={styles.taskCard}>
-      <Text style={styles.taskTitle}>{task.title}</Text>
+    <TouchableOpacity
+      key={index}
+      style={styles.taskCard}
+      onPress={() => openTaskModal(task)}
+    >
+      <Text style={styles.taskTitle}>{task?.JobTitle}</Text>
       <Text style={styles.taskDate}>
-        Ngày bắt đầu: {task.startDate.toLocaleString()} | Ngày kết thúc:
-        {task.endDate.toLocaleString()}
+        Ngày làm việc :{" "}
+        {formatDateToCustomString(task?.StartTime?.toLocaleString())}
       </Text>
-      <Text style={styles.taskFooter}>
-        Người liên hệ: {task.contactPerson} | Tình trạng:{" "}
-        {task.approved ? "Đã duyệt" : "Chưa duyệt"}
-      </Text>
-      {task.attachment && (
-        <Image source={{ uri: task.attachment }} style={styles.image} />
-      )}
-      <TouchableOpacity onPress={() => toggleDetails(index)}>
-        <Text style={styles.detailButton}>
-          {showDetailsIndex === index ? "Ẩn chi tiết" : "Xem chi tiết"}
+      <Text style={styles?.taskFooter}>Người liên hệ: {task?.WithPerson}</Text>
+      <View style={{ flexDirection: "row", gap: 3, alignItems: "center" }}>
+        <Text>Tình trạng:</Text>
+        <Text
+          style={[
+            styles.taskFooter,
+            task.Status === 1
+              ? styles.pending
+              : task.Status === 2
+              ? styles.approved
+              : task.Status === 3
+              ? styles.rejected
+              : {},
+          ]}
+        >
+          {task.Status === 1
+            ? "Chờ xác nhận"
+            : task.Status === 2
+            ? "Đã duyệt"
+            : task.Status === 3
+            ? "Từ chối"
+            : "Không xác định"}{" "}
         </Text>
-      </TouchableOpacity>
-      {showDetailsIndex === index && (
-        <View>
-          <Text style={styles.taskContent}>{task.content}</Text>
-          <TouchableOpacity onPress={() => toggleMore(index)}>
-            <Text style={styles.moreButton}>
-              {showMoreIndex === index ? "Ẩn thêm" : "Xem thêm"}
-            </Text>
-          </TouchableOpacity>
-          {showMoreIndex === index && (
-            <Text style={styles.taskNotes}>Ghi chú: {task.notes}</Text>
-          )}
-        </View>
-      )}
-    </View>
+      </View>
+    </TouchableOpacity>
   );
+
+  const handleBackPress = () => {
+    if (isModalVisibleViewTask) {
+      closeTaskModal();
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      handleBackPress
+    );
+    return () => backHandler.remove();
+  }, [isModalVisibleViewTask]);
 
   return (
     <SafeAreaView style={styles.container}>
       <HeaderGoBack />
-      <ScrollView style={styles.scrollContainer}>
-        <Text style={styles.title}>Danh sách công việc:</Text>
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.createButtonText}>Tạo phiếu công tác</Text>
+      </TouchableOpacity>
+      <ScrollView
+        style={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={fetchTasks} />
+        }
+      >
+        <Text style={styles.title}>Phiếu công tác:</Text>
         {tasks.length > 0 ? (
-          tasks.map(renderTaskCard)
+          tasks?.map(renderTaskCard)
         ) : (
           <Text style={styles.emptyMessage}>Chưa có công việc nào.</Text>
         )}
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Text style={styles.createButtonText}>Tạo phiếu công tác</Text>
-        </TouchableOpacity>
+
         <Modal
           animationType="slide"
           transparent={false}
           visible={modalVisible}
           onRequestClose={() => setModalVisible(false)}
         >
-          <ScrollView style={styles.modalContainer}>
+          <ScrollView
+            style={{
+              flex: 1,
+              paddingTop: 60,
+              paddingHorizontal: 20,
+              position: "relative",
+            }}
+            contentContainerStyle={styles.scrollViewContent}
+          >
             <KeyboardAvoidingView behavior="padding">
-              <View style={styles.buttonContainer}>
-                <Button title="Lưu Phiếu" onPress={handleSubmit} />
-                <Button title="Đóng" onPress={() => setModalVisible(false)} />
-              </View>
               <Text style={styles.modalTitle}>Thông tin công việc</Text>
-              <Text>Tiêu đề công việc:</Text>
+              <Text style={styles.label}>Tiêu đề công việc:</Text>
               <TextInput
-                value={taskDetails.title}
+                value={taskDetails.JobTitle}
                 onChangeText={(text) =>
-                  setTaskDetails((prev) => ({ ...prev, title: text }))
+                  setTaskDetails((prev) => ({ ...prev, JobTitle: text }))
                 }
                 style={styles.input}
               />
-              <Text>Ngày bắt đầu:</Text>
-              <DateTimePicker
-                value={taskDetails.startDate}
-                mode="datetime"
-                display="default"
-                onChange={(event, date) =>
-                  setTaskDetails((prev) => ({
-                    ...prev,
-                    startDate: date || prev.startDate,
-                  }))
-                }
-              />
-              <Text>Ngày kết thúc:</Text>
-              <DateTimePicker
-                value={taskDetails.endDate}
-                mode="datetime"
-                display="default"
-                onChange={(event, date) =>
-                  setTaskDetails((prev) => ({
-                    ...prev,
-                    endDate: date || prev.endDate,
-                  }))
-                }
-              />
-              <Text>Nội dung công việc:</Text>
+              <View>
+                <Text style={styles.label}>Giờ bắt đầu:</Text>
+                <DateTimePicker
+                  value={taskDetails.StartTime}
+                  mode="datetime"
+                  display="default"
+                  onChange={(event, date) =>
+                    setTaskDetails((prev) => ({
+                      ...prev,
+                      StartTime: date || prev.StartTime,
+                    }))
+                  }
+                  style={styles.datePicker}
+                  themeVariant="light"
+                />
+
+                <Text style={styles.label}>Giờ kết thúc:</Text>
+                <DateTimePicker
+                  value={taskDetails.EndTime}
+                  mode="datetime"
+                  display="default"
+                  onChange={(event, date) =>
+                    setTaskDetails((prev) => ({
+                      ...prev,
+                      EndTime: date || prev.EndTime,
+                    }))
+                  }
+                  style={styles.datePicker}
+                  themeVariant="light"
+                />
+              </View>
+
+              <Text style={styles.label}>Nội dung công việc:</Text>
               <TextInput
-                value={taskDetails.content}
+                value={taskDetails.Content}
                 onChangeText={(text) =>
-                  setTaskDetails((prev) => ({ ...prev, content: text }))
+                  setTaskDetails((prev) => ({ ...prev, Content: text }))
                 }
                 style={styles.textarea}
                 multiline
                 numberOfLines={4}
               />
-              <Text>Người liên hệ:</Text>
+              <Text style={styles.label}>Người liên hệ:</Text>
               <TextInput
-                value={taskDetails.contactPerson}
+                value={taskDetails.WithPerson}
                 onChangeText={(text) =>
-                  setTaskDetails((prev) => ({ ...prev, contactPerson: text }))
+                  setTaskDetails((prev) => ({ ...prev, WithPerson: text }))
                 }
                 style={styles.input}
               />
-              <Text>Chi phí (nếu có):</Text>
+              <Text style={styles.label}>Chi phí (nếu có):</Text>
               <TextInput
-                value={taskDetails.cost}
+                value={taskDetails.Cost}
                 onChangeText={(text) =>
-                  setTaskDetails((prev) => ({ ...prev, content: text }))
+                  setTaskDetails((prev) => ({ ...prev, Cost: text }))
                 }
                 style={styles.input}
                 keyboardType="numeric"
               />
-              <Text>Phương tiện di chuyển:</Text>
-              <RadioForm
-                radio_props={radio_translate}
-                initial={1}
-                formHorizontal={true}
-                animation={true}
-                onPress={(value: any) =>
-                  setTaskDetails((prev) => ({ ...prev, transportation: value }))
-                }
-                style={{ gap: 50, marginTop: 10 }}
-              />
-              <Text>Ưu tiên:</Text>
-              <RadioForm
-                radio_props={radio_props}
-                initial={1}
-                formHorizontal={true}
-                animation={true}
-                onPress={(value: any) =>
-                  setTaskDetails((prev) => ({ ...prev, priority: value }))
-                }
-                style={{ gap: 50, marginTop: 10 }}
-              />
-              <Text>Ngày hẹn lại:</Text>
+              <View style={styles.containerGroup}>
+                <View style={styles.radioGroup}>
+                  <Text style={styles.label}>Phương tiện di chuyển:</Text>
+                  <RadioForm
+                    radio_props={radio_translate}
+                    initial={1}
+                    formHorizontal={true}
+                    animation={true}
+                    onPress={(value: any) =>
+                      setTaskDetails((prev) => ({
+                        ...prev,
+                        TransportationMode: value,
+                      }))
+                    }
+                    style={styles.radioForm}
+                    buttonColor="#000000"
+                    labelColor="#000000"
+                  />
+                </View>
+
+                <View style={styles.radioGroup}>
+                  <Text style={styles.label}>Ưu tiên:</Text>
+                  <RadioForm
+                    radio_props={radio_props}
+                    initial={1}
+                    formHorizontal={true}
+                    animation={true}
+                    onPress={(value: any) =>
+                      setTaskDetails((prev) => ({ ...prev, Priority: value }))
+                    }
+                    style={[styles.radioForm]}
+                    buttonColor="#000000"
+                    labelColor="#000000"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.label}>Ngày hẹn lại:</Text>
               <DateTimePicker
-                value={taskDetails.followUpDate}
+                value={taskDetails.NextAppointment}
                 mode="datetime"
                 display="default"
                 onChange={(event, date) =>
                   setTaskDetails((prev) => ({
                     ...prev,
-                    followUpDate: date || prev.followUpDate,
+                    NextAppointment: date || prev.NextAppointment,
                   }))
                 }
+                themeVariant="light"
+                style={styles.datePicker}
               />
-              <Text>Nguồn tham khảo:</Text>
+              <Text style={styles.label}>Nguồn giới thiệu:</Text>
               <TextInput
-                value={taskDetails.referenceSource}
+                value={taskDetails.Referral}
                 onChangeText={(text) =>
-                  setTaskDetails((prev) => ({ ...prev, referenceSource: text }))
+                  setTaskDetails((prev) => ({
+                    ...prev,
+                    Referral: text,
+                  }))
                 }
                 style={styles.input}
               />
-              <Text>Ghi chú:</Text>
+              <Text style={styles.label}>Ghi chú:</Text>
               <TextInput
-                value={taskDetails.notes}
+                value={taskDetails.Notes}
                 onChangeText={(text) =>
-                  setTaskDetails((prev) => ({ ...prev, notes: text }))
+                  setTaskDetails((prev) => ({ ...prev, Notes: text }))
                 }
                 style={styles.textarea}
                 multiline
                 numberOfLines={4}
               />
               <Button title="Chọn ảnh đính kèm" onPress={handleImageUpload} />
-              {taskDetails.attachment && (
+              {taskDetails.AttachmentURL && (
                 <Image
-                  source={{ uri: taskDetails.attachment }}
+                  source={{ uri: taskDetails.AttachmentURL }}
                   style={styles.image}
                 />
               )}
             </KeyboardAvoidingView>
           </ScrollView>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Đóng</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>Lưu Phiếu</Text>
+            </TouchableOpacity>
+          </View>
+          {isLoading && <LoadingIndicator />}
         </Modal>
       </ScrollView>
+      <Modal
+        visible={isModalVisibleViewTask}
+        animationType="slide"
+        onRequestClose={closeTaskModal}
+      >
+        {selectedTask && (
+          <ViewTaskScreen task={selectedTask} closeTaskModal={closeTaskModal} />
+        )}
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -364,6 +527,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     alignItems: "center",
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
   createButtonText: {
     color: "#fff",
@@ -374,6 +541,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     marginTop: 20,
+    position: "relative",
   },
   modalTitle: {
     fontSize: 22,
@@ -386,6 +554,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
+    marginTop: 15,
   },
   textarea: {
     borderWidth: 1,
@@ -394,6 +563,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     minHeight: 60,
+    marginTop: 15,
   },
   image: {
     width: "100%",
@@ -410,7 +580,65 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    padding: 15,
+    backgroundColor: "white",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    borderRadius: 10,
+  },
+  button: {
+    flex: 1,
+    marginHorizontal: 10,
+    paddingVertical: 15,
+    backgroundColor: "#007BFF",
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  approved: {
+    color: "green",
+  },
+  pending: {
+    color: "red",
+  },
+  rejected: {
+    color: "red",
+  },
+
+  containerGroup: {
+    marginVertical: 10,
+  },
+  radioGroup: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  radioForm: {
+    gap: 50,
+    marginTop: 10,
+    flexDirection: "row",
+  },
+  scrollViewContent: {
+    paddingBottom: 350,
+  },
+
+  datePicker: {
+    marginBottom: 12,
   },
 });
 

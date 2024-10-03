@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
 
-const HeaderGoBack = () => {
+const HeaderAction = () => {
   const navigation = useNavigation();
 
   return (
@@ -23,10 +23,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
-    backgroundColor: "#fff", 
+    backgroundColor: "#fff",
   },
   backButton: {
-    padding: 0, 
+    padding: 0,
   },
   headerText: {
     fontSize: 18,
@@ -36,4 +36,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HeaderGoBack;
+export default HeaderAction;

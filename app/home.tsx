@@ -13,6 +13,13 @@ import { useNavigation } from "expo-router";
 
 type HomeNavigatorProp = NativeStackNavigationProp<RootParamsList>;
 
+interface ServiceItem {
+  id: string;
+  name: string;
+  image: any; // or a more specific type, like ImageSource
+  navigate?: string; // note the optional ? symbol
+}
+
 const Home = () => {
   const currentUser = {
     picture:
@@ -41,10 +48,10 @@ const Home = () => {
     },
   ];
 
-  const renderServiceItem = ({ item }) => (
+  const renderServiceItem = ({ item }: { item: ServiceItem }) => (
     <View
       style={styles.serviceItem}
-      onTouchEnd={() => navigate.navigate(item.navigate)}
+      onTouchEnd={() => navigate.navigate(item?.navigate || "tab")}
     >
       <View style={styles.serviceImageContainer}>
         <Image source={item.image} style={styles.serviceImage} />

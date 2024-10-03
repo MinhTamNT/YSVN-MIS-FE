@@ -16,7 +16,6 @@ import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/n
 import * as Yup from "yup";
 import { RootParamsList } from "./_layout";
 
-
 const loginSchema = Yup.object().shape({
   username: Yup.string().required("Chưa nhập tên đăng nhặp"),
   password: Yup.string().required("Chưa nhập mật khẩu"),
@@ -62,7 +61,7 @@ export default function Login() {
             <TextInput
               style={[
                 styles.input,
-                touched.username && errors.username && styles.inputError,
+                touched.password && errors.password ? styles.inputError : {},
               ]}
               placeholder="Tên đăng nhập"
               placeholderTextColor={"#333"}
@@ -77,7 +76,7 @@ export default function Login() {
             <TextInput
               style={[
                 styles.input,
-                touched.password && errors.password && styles.inputError,
+                touched.password && errors.password ? styles.inputError : {},
               ]}
               placeholder="Mật khẩu"
               placeholderTextColor={"#333"}
@@ -234,32 +233,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent black background
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
-    width: "80%", // Width of the modal
-    padding: 20, // Padding for the content
-    backgroundColor: "#fff", // White background for the modal content
-    borderRadius: 10, // Rounded corners
-    alignItems: "center", // Center the content
-    shadowColor: "#000", // Shadow color
+    width: "80%",
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center", 
+    shadowColor: "#000", 
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow radius
-    elevation: 5, // For Android shadow effect
+    shadowOpacity: 0.25, 
+    shadowRadius: 3.84, 
+    elevation: 5, 
   },
   spinner: {
-    marginBottom: 10, // Space between spinner and text
+    marginBottom: 10, 
   },
   modalText: {
     marginTop: 10,
-    color: "#333", // Text color for better contrast
+    color: "#333", 
     fontSize: 16,
-    textAlign: "center", // Center the text
-    fontFamily: "HelveticaNeue", // Use a clean font if available
+    textAlign: "center", 
+    fontFamily: "HelveticaNeue", 
   },
   createAccountContainer: {
     alignItems: "center",
