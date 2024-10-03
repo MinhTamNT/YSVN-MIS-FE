@@ -26,6 +26,7 @@ import moment from "moment";
 import EditTaskScreen from "@/components/Edit/EditCollab";
 import { radio_props, radio_translate } from "@/lib/lib";
 import Toast from "react-native-toast-message";
+import { convertToBase64 } from "@/lib/utilis";
 const Collab: React.FC = () => {
   const [taskDetails, setTaskDetails] = useState<Task>({
     JobTitle: "",
@@ -61,7 +62,7 @@ const Collab: React.FC = () => {
     const minutes = String(date.getMinutes()).padStart(2, "0");
     const seconds = String(date.getSeconds()).padStart(2, "0");
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
   }
 
   const openTaskModal = (task: Task) => {
@@ -111,39 +112,11 @@ const Collab: React.FC = () => {
 
     try {
       setIsLoading(true);
-      let attachmentBase64 = "";
-
-      if (taskDetails.AttachmentURL) {
-        const response = await fetch(taskDetails.AttachmentURL);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch file");
-        }
-
-        const blob = await response.blob();
-        const fileReader = new FileReader();
-
-        attachmentBase64 = await new Promise((resolve, reject) => {
-          fileReader.onloadend = () => {
-            if (typeof fileReader.result === "string") {
-              resolve(fileReader.result.split(",")[1]);
-            } else {
-              reject(new Error("File reading failed"));
-            }
-          };
-
-          fileReader.onerror = () => reject(new Error("Error reading file"));
-
-          fileReader.readAsDataURL(blob);
-        });
-      }
 
       const payload = {
         job_title: taskDetails.JobTitle,
-        start_time: formatDateToCustomString(
-          taskDetails.StartTime.toDateString()
-        ),
-        end_time: formatDateToCustomString(taskDetails.EndTime.toISOString()),
+        start_time: taskDetails.StartTime.toISOString(),
+        end_time: taskDetails.EndTime.toISOString(),
         priority: taskDetails.Priority,
         content: taskDetails.Content,
         with_person: taskDetails.WithPerson,
@@ -154,7 +127,7 @@ const Collab: React.FC = () => {
         referral: taskDetails.Referral,
         cost: taskDetails.Cost,
         notes: taskDetails.Notes,
-        attachment: attachmentBase64,
+        attachment: taskDetails.AttachmentURL,
       };
 
       await API().post(endPoints["create-collaborate"], payload, {
@@ -195,14 +168,16 @@ const Collab: React.FC = () => {
   const handleImageUpload = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
+      allowsEditing: true,
       quality: 1,
     });
 
     if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      const base64Image = await convertToBase64(uri);
       setTaskDetails((prev) => ({
         ...prev,
-        AttachmentURL: result.assets[0].uri,
+        AttachmentURL: base64Image,
       }));
     }
   };
@@ -227,7 +202,7 @@ const Collab: React.FC = () => {
     >
       <Text style={styles.taskTitle}>{task?.JobTitle}</Text>
       <Text style={styles.taskDate}>
-        Ngày làm việc :{moment(task?.StartTime).format("DD/MM/YYYY")}
+        Ngày làm việc : {formatDateToCustomString(task?.StartTime)}
       </Text>
       <Text style={styles?.taskFooter}>Người liên hệ: {task?.WithPerson}</Text>
       <View style={{ flexDirection: "row", gap: 3, alignItems: "center" }}>
@@ -292,7 +267,7 @@ const Collab: React.FC = () => {
               <RefreshControl refreshing={isLoading} onRefresh={fetchTasks} />
             }
           >
-            <Text style={styles.title}>Phiếu công tác:</Text>
+            <Text style={styles.title}>Danh sách phiếu công tác:</Text>
             {tasks.length > 0 ? (
               tasks?.map(renderTaskCard)
             ) : (
@@ -464,8 +439,13 @@ const Collab: React.FC = () => {
                   />
                   {taskDetails.AttachmentURL && (
                     <Image
-                      source={{ uri: taskDetails.AttachmentURL }}
+                      source={{
+                        uri: taskDetails.AttachmentURL
+                          ? `data:image/jpeg;base64,${taskDetails.AttachmentURL}`
+                          : taskDetails.AttachmentURL,
+                      }}
                       style={styles.image}
+                      resizeMode="cover"
                     />
                   )}
                 </KeyboardAvoidingView>

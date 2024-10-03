@@ -51,7 +51,7 @@ const Home = () => {
   const renderServiceItem = ({ item }: { item: ServiceItem }) => (
     <View
       style={styles.serviceItem}
-      onTouchEnd={() => navigate.navigate(item?.navigate || "tab")}
+      onTouchEnd={() => navigate.navigate(item?.navigate || "tabs")}
     >
       <View style={styles.serviceImageContainer}>
         <Image source={item.image} style={styles.serviceImage} />

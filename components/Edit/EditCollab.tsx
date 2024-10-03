@@ -18,6 +18,7 @@ import * as ImagePicker from "expo-image-picker"; // Import for image picker
 import { API, endPoints } from "@/Service/Api";
 import LoadingIndicator from "../Loading/Loading";
 import Toast from "react-native-toast-message"; // Import Toast
+import { convertToBase64 } from "@/lib/utilis";
 const EditTaskScreen: React.FC<{
   task: Task;
   closeModal: () => void;
@@ -51,7 +52,9 @@ const EditTaskScreen: React.FC<{
     });
 
     if (!result.canceled) {
-      setTaskDetails({ ...taskDetails, AttachmentURL: result.assets[0].uri });
+      const uri = result.assets[0].uri;
+      const base64Image = await convertToBase64(uri);
+      setTaskDetails({ ...taskDetails, AttachmentURL: base64Image });
     }
   };
 
@@ -81,7 +84,7 @@ const EditTaskScreen: React.FC<{
       AttachmentURL: taskDetails.AttachmentURL,
       Status: taskDetails.Status,
     };
-
+    console.log(updatedTask.AttachmentURL);
     try {
       setIsLoading(true);
       await API().put(
@@ -263,10 +266,10 @@ const EditTaskScreen: React.FC<{
                 source={{
                   uri: taskDetails.AttachmentURL
                     ? `data:image/jpeg;base64,${taskDetails.AttachmentURL}`
-                    : "",
+                    : taskDetails.AttachmentURL,
                 }}
                 style={styles.image}
-                resizeMode="contain"
+                resizeMode="cover"
               />
             )}
           </>
