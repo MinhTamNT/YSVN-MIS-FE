@@ -1,11 +1,12 @@
 export interface Task {
+  AutoID?: number;
   JobTitle: string;
   StartTime: Date;
   EndTime: Date;
   Priority: number;
   Content: string;
   WithPerson: string;
-  TransportationMode: string;
+  TransportationMode: number;
   NextAppointment: Date;
   Referral: string;
   Cost: string;

@@ -13,15 +13,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import moment from "moment";
 
-// Function to get transportation label
-const getTransportationLabel = (value: string) => {
+const getTransportationLabel = (value: number) => {
   switch (value) {
-    case "1":
+    case 1:
       return "Xe tự túc";
-    case "2":
+    case 2:
       return "Xe công ty";
-    case "3":
+    case 3:
       return "Xe khác";
     default:
       return "Không xác định";
@@ -52,12 +52,16 @@ const ViewTaskScreen: React.FC<{ task: Task; closeTaskModal: () => void }> = ({
 
         <View style={styles.itemContainer}>
           <Text style={styles.itemTitle}>Ngày bắt đầu:</Text>
-          <Text style={styles.itemText}>{task.StartTime.toLocaleString()}</Text>
+          <Text style={styles.itemText}>
+            {moment(task?.StartTime).format("DD/MM/YYYY")}
+          </Text>
         </View>
 
         <View style={styles.itemContainer}>
           <Text style={styles.itemTitle}>Ngày kết thúc:</Text>
-          <Text style={styles.itemText}>{task.EndTime.toLocaleString()}</Text>
+          <Text style={styles.itemText}>
+            {moment(task?.EndTime).format("DD/MM/YYYY")}
+          </Text>
         </View>
 
         <View style={styles.itemContainer}>
@@ -128,7 +132,7 @@ const ViewTaskScreen: React.FC<{ task: Task; closeTaskModal: () => void }> = ({
                     : "",
                 }}
                 style={styles.image}
-                resizeMode="contain" // Optional: to ensure the image fits nicely
+                resizeMode="contain"
               />
             </TouchableOpacity>
           </View>
@@ -149,7 +153,7 @@ const ViewTaskScreen: React.FC<{ task: Task; closeTaskModal: () => void }> = ({
                     : "",
                 }}
                 style={styles.fullImage}
-                resizeMode="contain" // Optional: to ensure the image fits nicely
+                resizeMode="contain"
               />
             </View>
           </TouchableWithoutFeedback>
@@ -159,7 +163,6 @@ const ViewTaskScreen: React.FC<{ task: Task; closeTaskModal: () => void }> = ({
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -189,10 +192,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333", // Dark gray for title
+    color: "#333",
   },
   closeButton: {
-    backgroundColor: "#333", // Vibrant red color
+    backgroundColor: "#333",
     padding: 5,
     borderRadius: 5,
     width: 40,
@@ -203,17 +206,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0", // Light gray border
+    borderBottomColor: "#E0E0E0",
   },
   itemTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#555", // Medium gray for titles
+    color: "#555",
     marginBottom: 5,
   },
   itemText: {
     fontSize: 16,
-    color: "#333", // Dark gray for text
+    color: "#333",
   },
   imageContainer: {
     marginTop: 20,
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Dark overlay
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
   },

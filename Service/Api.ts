@@ -5,6 +5,7 @@ const baseURL = "http://10.10.92.101:5000";
 export const endPoints = {
   "create-collaborate": "/api/create/collaborate",
   "get-collaborate": "/api/collaborate",
+  "update-collaborate": (id: number) => `/api/collaborate/${id}`,
 };
 
 export const AUTHAPI = (token: string) => {
