@@ -17,7 +17,7 @@ const Stack = createStackNavigator<RootParamsList>();
 export default function RootLayout() {
   return (
     <>
-      <Stack.Navigator initialRouteName="tab">
+      <Stack.Navigator initialRouteName="welcome">
         <Stack.Screen
           name="login"
           component={Login}

@@ -1,11 +1,14 @@
 import ViewTaskScreen from "@/components/Details/Detail";
+import EditTaskScreen from "@/components/Edit/EditCollab";
 import HeaderGoBack from "@/components/Header/HeaderGoBack";
 import LoadingIndicator from "@/components/Loading/Loading";
 import { Task } from "@/lib/interface";
+import { radio_props, radio_translate } from "@/lib/lib";
+import { convertToBase64 } from "@/lib/utilis";
 import { API, endPoints } from "@/Service/Api";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   BackHandler,
   Button,
@@ -22,11 +25,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import RadioForm from "react-native-simple-radio-button";
-import moment from "moment";
-import EditTaskScreen from "@/components/Edit/EditCollab";
-import { radio_props, radio_translate } from "@/lib/lib";
 import Toast from "react-native-toast-message";
-import { convertToBase64 } from "@/lib/utilis";
 const Collab: React.FC = () => {
   const [taskDetails, setTaskDetails] = useState<Task>({
     JobTitle: "",
@@ -52,18 +51,16 @@ const Collab: React.FC = () => {
   const [isLoadingViewTask, setIsLoadingViewTask] = useState(false);
   const [editView, setEditView] = useState(false);
   const [isReferral, setIsReferral] = useState(false);
-  function formatDateToCustomString(dateString: any) {
+  const formatDateToCustomString = useCallback((dateString: any) => {
     const date = new Date(dateString);
-
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-    const seconds = String(date.getSeconds()).padStart(2, "0");
 
     return `${day}-${month}-${year} ${hours}:${minutes}`;
-  }
+  }, []);
 
   const openTaskModal = (task: Task) => {
     setSelectedTask(task);
@@ -84,21 +81,6 @@ const Collab: React.FC = () => {
     setSelectedTask(null);
   };
 
-  useEffect(() => {
-    const getAllCollobarte = async () => {
-      try {
-        setIsLoadingViewTask(true);
-        const response = await API().get(endPoints["get-collaborate"]);
-        setTasks(response.data);
-      } catch (error) {
-        console.log("Error while fetching tasks:", error);
-      } finally {
-        setIsLoadingViewTask(false);
-      }
-    };
-    getAllCollobarte();
-  }, [isReferral]);
-
   const handleSubmit = async () => {
     if (!taskDetails.JobTitle || !taskDetails.Content) {
       alert("Tiêu đề và nội dung không được để trống.");
@@ -115,21 +97,21 @@ const Collab: React.FC = () => {
 
       const payload = {
         job_title: taskDetails.JobTitle,
-        start_time: taskDetails.StartTime.toISOString(),
-        end_time: taskDetails.EndTime.toISOString(),
+        start_time: formatDateToCustomString(taskDetails.StartTime),
+        end_time: formatDateToCustomString(taskDetails.EndTime),
         priority: taskDetails.Priority,
         content: taskDetails.Content,
         with_person: taskDetails.WithPerson,
         transportation_mode: taskDetails.TransportationMode,
-        next_appointment: formatDateToCustomString(
-          taskDetails.NextAppointment.toDateString()
-        ),
+        next_appointment: formatDateToCustomString(taskDetails.NextAppointment),
         referral: taskDetails.Referral,
         cost: taskDetails.Cost,
         notes: taskDetails.Notes,
         attachment: taskDetails.AttachmentURL,
       };
 
+      console.log(payload.start_time);
+      console.log(payload.end_time);
       await API().post(endPoints["create-collaborate"], payload, {
         headers: {
           "Content-Type": "application/json",
@@ -181,54 +163,64 @@ const Collab: React.FC = () => {
       }));
     }
   };
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     setIsLoading(true);
-    setIsReferral((prev) => !prev);
-    setIsLoading(false);
-  };
+    try {
+      const response = await API().get(endPoints["get-collaborate"]);
+      setTasks(response.data);
+    } catch (error) {
+      console.log("Error fetching tasks:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const renderTaskCard = (task: Task, index: number) => (
-    <TouchableOpacity
-      key={index}
-      style={styles.taskCard}
-      onPress={() => {
-        if (task.Status === 1) {
-          editVewTask(task);
-        } else {
-          openTaskModal(task);
-        }
-      }}
-    >
-      <Text style={styles.taskTitle}>{task?.JobTitle}</Text>
-      <Text style={styles.taskDate}>
-        Ngày làm việc : {formatDateToCustomString(task?.StartTime)}
-      </Text>
-      <Text style={styles?.taskFooter}>Người liên hệ: {task?.WithPerson}</Text>
-      <View style={{ flexDirection: "row", gap: 3, alignItems: "center" }}>
-        <Text>Tình trạng:</Text>
-        <Text
-          style={[
-            styles.taskFooter,
-            task.Status === 1
-              ? styles.pending
-              : task.Status === 2
-              ? styles.approved
-              : task.Status === 3
-              ? styles.rejected
-              : {},
-          ]}
-        >
-          {task.Status === 1
-            ? "Chờ xác nhận"
-            : task.Status === 2
-            ? "Đã duyệt"
-            : task.Status === 3
-            ? "Từ chối"
-            : "Không xác định"}{" "}
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks, isReferral]);
+
+  const renderTaskCard = useCallback(
+    (task: Task, index: number) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.taskCard}
+        onPress={() => {
+          setSelectedTask(task);
+        }}
+      >
+        <Text style={styles.taskTitle}>{task?.JobTitle}</Text>
+        <Text style={styles.taskDate}>
+          Ngày làm việc: {formatDateToCustomString(task?.StartTime)}
         </Text>
-      </View>
-    </TouchableOpacity>
+        <Text style={styles?.taskFooter}>
+          Người liên hệ: {task?.WithPerson}
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text>Tình trạng: </Text>
+          <Text
+            style={[
+              styles.taskFooter,
+              task.Status === 1
+                ? styles.pending
+                : task.Status === 2
+                ? styles.approved
+                : task.Status === 3
+                ? styles.rejected
+                : {},
+            ]}
+          >
+            {task.Status === 1
+              ? "Chờ xác nhận"
+              : task.Status === 2
+              ? "Đã duyệt"
+              : task.Status === 3
+              ? "Từ chối"
+              : "Không xác định"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    ),
+    [formatDateToCustomString]
   );
 
   const handleBackPress = () => {

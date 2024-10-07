@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "http://10.10.92.101:5000";
+const baseURL = "http://10.10.93.13:5000";
 
 export const endPoints = {
   "create-collaborate": "/api/create/collaborate",

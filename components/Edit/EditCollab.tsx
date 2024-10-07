@@ -72,12 +72,12 @@ const EditTaskScreen: React.FC<{
     const updatedTask = {
       JobTitle: taskDetails.JobTitle,
       StartTime: taskDetails.StartTime.toISOString(),
-      EndTime: taskDetails.EndTime.toISOString(), // Format date
+      EndTime: taskDetails.EndTime.toISOString(),
       Priority: taskDetails.Priority,
       Content: taskDetails.Content,
       WithPerson: taskDetails.WithPerson,
       TransportationMode: taskDetails.TransportationMode,
-      NextAppointment: taskDetails.NextAppointment?.toISOString(), // Format date
+      NextAppointment: taskDetails.NextAppointment?.toISOString(),
       Referral: taskDetails.Referral,
       Cost: taskDetails.Cost,
       Notes: taskDetails.Notes,

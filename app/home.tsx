@@ -87,7 +87,7 @@ const Home = () => {
       </View>
 
       <View style={styles.contentHome}>
-        <Text style={styles.nameService}>Danh sách dịch vụ</Text>
+        <Text style={styles.nameService}>Danh sách chức năng</Text>
 
         <FlatList
           data={services}
