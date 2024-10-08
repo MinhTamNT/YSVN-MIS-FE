@@ -185,7 +185,11 @@ const Collab: React.FC = () => {
         key={index}
         style={styles.taskCard}
         onPress={() => {
-          setSelectedTask(task);
+          if (task.Status === 1) {
+            editVewTask(task);
+          } else {
+            openTaskModal(task);
+          }
         }}
       >
         <Text style={styles.taskTitle}>{task?.JobTitle}</Text>
