@@ -10,7 +10,6 @@ import React from "react";
 import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
 import { RootParamsList } from "./_layout";
 import { useNavigation } from "expo-router";
-
 type HomeNavigatorProp = NativeStackNavigationProp<RootParamsList>;
 
 interface ServiceItem {
@@ -33,18 +32,18 @@ const Home = () => {
     {
       id: "1",
       name: "Phiếu công tác",
-      image: require("@/assets/images/doc.png"),
+      image: "../assets/images/doc.png",
       navigate: "collab",
     },
     {
       id: "2",
       name: "Dịch vụ 2",
-      image: require("@/assets/images/doc.png"),
+      image: "../assets/images/doc.png",
     },
     {
       id: "2",
       name: "Dịch vụ 2",
-      image: require("@/assets/images/doc.png"),
+      image: "../assets/images/doc.png",
     },
   ];
 
@@ -156,14 +155,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
     shadowRadius: 3.5,
-    elevation: 5,
   },
   serviceImage: {
     marginBottom: 5,
@@ -176,6 +168,7 @@ const styles = StyleSheet.create({
     color: "#022751",
     fontWeight: "500",
     fontSize: 12,
+    backgroundColor: "#ffffff",
   },
   serviceImageContainer: {
     backgroundColor: "#ffffff",
