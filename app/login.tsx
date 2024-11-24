@@ -23,6 +23,8 @@ const loginSchema = Yup.object().shape({
 
 type HomeNavigationProps = NativeStackNavigationProp<RootParamsList>;
 
+const nameApp = require("../assets/images/name-app.png")
+const handImage = require("../assets/images/hand.png")
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigation<HomeNavigationProps>();
@@ -30,7 +32,7 @@ export default function Login() {
     <SafeAreaView style={styles.container}>
       <View style={{ alignItems: "center", marginTop: 50 }}>
         <Image
-          source={require("@/assets/images/name-app.png")}
+          source={nameApp}
           style={styles.Logo}
         />
       </View>
@@ -112,7 +114,7 @@ export default function Login() {
               </TouchableOpacity>
               <TouchableOpacity>
                 <Image
-                  source={require("@/assets/images/hand.png")}
+                  source={handImage}
                   style={{ resizeMode: "contain", width: 42, height: 42 }}
                 />
               </TouchableOpacity>

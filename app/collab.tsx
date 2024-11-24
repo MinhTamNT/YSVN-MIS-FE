@@ -1,11 +1,12 @@
-import ViewTaskScreen from "@/components/Details/Detail";
-import EditTaskScreen from "@/components/Edit/EditCollab";
-import HeaderGoBack from "@/components/Header/HeaderGoBack";
-import LoadingIndicator from "@/components/Loading/Loading";
+import ViewTaskScreen from "../components/Details/Detail";
+import EditTaskScreen from "../components/Edit/EditCollab";
+import HeaderGoBack from "../components/Header/HeaderGoBack";
+import LoadingIndicator from "../components/Loading/Loading";
+
 import { Task } from "@/lib/interface";
-import { radio_props, radio_translate } from "@/lib/lib";
-import { convertToBase64 } from "@/lib/utilis";
-import { API, endPoints } from "@/Service/Api";
+import { radio_props, radio_translate } from "../lib/lib";
+import { convertToBase64 } from "../lib/utilis";
+import { API, endPoints } from "../Service/Api";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useState } from "react";

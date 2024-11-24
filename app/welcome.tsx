@@ -7,6 +7,7 @@ import { useNavigation } from "expo-router";
 
 type WelcomeNavigateProps = NativeStackNavigationProp<RootParamsList>;
 
+const imageLogo = require("../assets/images/logo-min.png")
 export default function Welcome() {
   const navigate = useNavigation<WelcomeNavigateProps>();
 
@@ -21,7 +22,7 @@ export default function Welcome() {
   return (
     <SafeAreaView style={styles.container}>
       <Image
-        source={require("@/assets/images/logo-min.png")}
+        source={imageLogo}
         style={styles.logo}
       />
       <View style={styles.footer}>

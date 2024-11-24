@@ -12,11 +12,14 @@ import { RootParamsList } from "./_layout";
 import { useNavigation } from "expo-router";
 type HomeNavigatorProp = NativeStackNavigationProp<RootParamsList>;
 
+const imageDocs = require("../assets/images/doc.png")
+const imageVerify = require("../assets/images/verify.png")
+
 interface ServiceItem {
   id: string;
   name: string;
-  image: any; // or a more specific type, like ImageSource
-  navigate?: string; // note the optional ? symbol
+  image: any; 
+  navigate?: string; 
 }
 
 const Home = () => {
@@ -32,18 +35,18 @@ const Home = () => {
     {
       id: "1",
       name: "Phiếu công tác",
-      image: "../assets/images/doc.png",
+      image: imageDocs,
       navigate: "collab",
     },
     {
       id: "2",
       name: "Dịch vụ 2",
-      image: "../assets/images/doc.png",
+      image: imageDocs,
     },
     {
       id: "2",
       name: "Dịch vụ 2",
-      image: "../assets/images/doc.png",
+      image: imageDocs,
     },
   ];
 
@@ -79,7 +82,7 @@ const Home = () => {
             <Text style={styles.phoneUser}>{currentUser.phone}</Text>
           </View>
           <Image
-            source={require("@/assets/images/verify.png")}
+            source={imageVerify}
             style={styles.verify}
           />
         </View>
@@ -168,7 +171,6 @@ const styles = StyleSheet.create({
     color: "#022751",
     fontWeight: "500",
     fontSize: 12,
-    backgroundColor: "#ffffff",
   },
   serviceImageContainer: {
     backgroundColor: "#ffffff",

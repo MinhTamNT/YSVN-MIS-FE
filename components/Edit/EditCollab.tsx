@@ -1,5 +1,5 @@
-import { Task } from "@/lib/interface";
-import { radio_props, radio_translate } from "@/lib/lib";
+import { Task } from "../../lib/interface";
+import { radio_props, radio_translate } from "../../lib/lib";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import {
@@ -15,10 +15,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import RadioForm from "react-native-simple-radio-button";
 import * as ImagePicker from "expo-image-picker"; // Import for image picker
-import { API, endPoints } from "@/Service/Api";
+import { API, endPoints } from "../../Service/Api";
 import LoadingIndicator from "../Loading/Loading";
 import Toast from "react-native-toast-message"; // Import Toast
-import { convertToBase64 } from "@/lib/utilis";
+import { convertToBase64 } from "../../lib/utilis";
 const EditTaskScreen: React.FC<{
   task: Task;
   closeModal: () => void;

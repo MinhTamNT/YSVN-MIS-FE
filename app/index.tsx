@@ -1,16 +1,11 @@
 import { Text, View } from "react-native";
 
 import React from "react";
-export default function Index() {
+import RootLayout from "./_layout";
+const App :React.FC =()=> {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+    <RootLayout />
+  )
 }
+
+export default App
